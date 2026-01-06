@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Alumnos | Cobralo</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .glass { background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(10px); }
+        .animate-fade-in { animation: fadeIn 0.3s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body class="bg-[#F8FAFC] min-h-screen">
+
+    <div class="flex h-screen overflow-hidden">
+        
+        <aside class="w-64 bg-slate-900 text-white p-6 hidden md:flex flex-col">
+            <div class="mb-10 text-xl font-black italic tracking-tighter uppercase text-indigo-400">COBRALO</div>
+            <nav class="space-y-2 flex-1">
+                <a href="dashboard.html" class="flex items-center gap-3 p-3 text-gray-400 hover:bg-slate-800 rounded-xl transition font-medium">
+                    <i class="fa-solid fa-chart-pie w-5"></i> Dashboard
+                </a>
+                <a href="students.html" class="flex items-center gap-3 p-3 bg-indigo-600 text-white rounded-xl shadow-lg font-bold">
+                    <i class="fa-solid fa-users w-5"></i> Alumnos
+                </a>
+                <a href="settings.html" class="flex items-center gap-3 p-3 text-gray-400 hover:bg-slate-800 rounded-xl transition font-medium">
+                    <i class="fa-solid fa-gear w-5"></i> Configuración
+                </a>
+            </nav>
+        </aside>
+
+        <main class="flex-1 overflow-y-auto p-6 md:p-10">
+            
+            <header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-10">
+                <div>
+                    <h1 class="text-3xl font-extrabold text-slate-900 tracking-tight">Gestión de Alumnos</h1>
+                    <p class="text-slate-500 font-medium">Administrá tus cobros y recordatorios.</p>
+                </div>
+                <button onclick="openModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-4 rounded-[20px] font-bold shadow-xl shadow-indigo-100 transition-all active:scale-95 flex items-center gap-2">
+                    <i class="fa-solid fa-plus text-sm"></i> Nuevo Alumno
+                </button>
+            </header>
+
+            <div class="relative max-w-md mb-8">
+                <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                <input type="text" placeholder="Buscar por nombre..." class="w-full pl-12 pr-4 py-4 bg-white border border-slate-100 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm transition">
+            </div>
+
+            <div class="bg-white rounded-[32px] border border-slate-100 shadow-sm overflow-hidden animate-fade-in">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead class="bg-slate-50 border-b border-slate-100">
+                            <tr>
+                                <th class="p-5 text-xs font-black uppercase text-slate-400 tracking-widest">Alumno</th>
+                                <th class="p-5 text-xs font-black uppercase text-slate-400 tracking-widest">Servicio</th>
+                                <th class="p-5 text-xs font-black uppercase text-slate-400 tracking-widest">Cuota</th>
+                                <th class="p-5 text-xs font-black uppercase text-slate-400 tracking-widest">Estado</th>
+                                <th class="p-5 text-xs font-black uppercase text-slate-400 tracking-widest">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="students-list">
+                            <tr>
+                                <td colspan="5" class="p-10 text-center text-slate-400">Cargando alumnos...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div id="modal-alumno" class="hidden fixed inset-0 bg-slate-900/60 items-center justify-center z-50 p-4 backdrop-blur-sm animate-fade-in">
+        <div class="bg-white w-full max-w-md rounded-[40px] p-8 shadow-2xl relative">
+            <button onclick="closeModal()" class="absolute right-6 top-6 text-slate-300 hover:text-slate-600 transition">
+                <i class="fa-solid fa-circle-xmark text-2xl"></i>
+            </button>
+
+            <h2 class="text-2xl font-black text-slate-900 mb-6">Nuevo Alumno</h2>
+            
+            <form id="form-nuevo-alumno" class="space-y-4">
+                <input type="text" id="add-name" placeholder="Nombre completo" class="w-full p-4 bg-slate-50 rounded-2xl border-none focus:ring-2 focus:ring-indigo-500 outline-none shadow-inner" required>
+                <input type="tel" id="add-phone" placeholder="WhatsApp (Ej: 3562530313)" class="w-full p-4 bg-slate-50 rounded-2xl border-none focus:ring-2 focus:ring-indigo-500 outline-none shadow-inner" required>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <select id="add-service" class="w-full p-4 bg-slate-50 rounded-2xl border-none font-bold text-slate-700 outline-none">
+                        </select>
+                    <input type="number" id="add-pph" placeholder="Precio x Hora" class="w-full p-4 bg-slate-50 rounded-2xl border-none outline-none focus:ring-2 focus:ring-indigo-500 shadow-inner" required>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <input type="number" id="add-hours" placeholder="Clases al mes" class="w-full p-4 bg-slate-50 rounded-2xl border-none outline-none focus:ring-2 focus:ring-indigo-500 shadow-inner" required>
+                    <select id="add-wallet" class="w-full p-4 bg-slate-50 rounded-2xl border-none font-bold text-slate-700 outline-none">
+                        <option value="Mercado Pago">Mercado Pago</option>
+                        <option value="Naranja X">Naranja X</option>
+                    </select>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4 bg-indigo-50/50 p-4 rounded-[24px]">
+                    <div>
+                        <label class="block text-[10px] font-black text-indigo-400 uppercase ml-1 mb-1">Día Vencimiento</label>
+                        <input type="number" id="add-deadline" value="10" class="w-full p-3 bg-white rounded-xl border-none outline-none focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-black text-indigo-400 uppercase ml-1 mb-1">% Recargo</label>
+                        <input type="number" id="add-surcharge" value="10" class="w-full p-3 bg-white rounded-xl border-none outline-none focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                </div>
+
+                <div class="pt-4">
+                    <button type="button" onclick="saveStudent()" class="w-full bg-slate-900 text-white font-bold py-5 rounded-[24px] shadow-xl hover:bg-indigo-600 transition-all active:scale-95">
+                        Guardar Alumno <i class="fa-solid fa-arrow-right ml-2 text-xs"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script type="module" src="../js/students.js"></script>
+
+</body>
+</html>

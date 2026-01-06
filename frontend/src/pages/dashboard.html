@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard | Cobralo</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .glass { background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(10px); }
+        .card-stat { transition: transform 0.2s ease; }
+        .card-stat:hover { transform: translateY(-5px); }
+    </style>
+</head>
+<body class="bg-[#F8FAFC] min-h-screen">
+    <div class="flex h-screen overflow-hidden">
+        
+        <aside class="w-64 bg-slate-900 text-white p-6 hidden md:flex flex-col">
+            <div class="mb-10 text-xl font-black italic tracking-tighter uppercase text-indigo-400">COBRALO</div>
+            <nav class="space-y-2 flex-1">
+                <a href="dashboard.html" class="flex items-center gap-3 p-3 bg-indigo-600 text-white rounded-xl shadow-lg font-bold">
+                    <i class="fa-solid fa-chart-pie w-5"></i> Dashboard
+                </a>
+                <a href="students.html" class="flex items-center gap-3 p-3 text-gray-400 hover:bg-slate-800 rounded-xl transition font-medium">
+                    <i class="fa-solid fa-users w-5"></i> Alumnos
+                </a>
+                <a href="settings.html" class="flex items-center gap-3 p-3 text-gray-400 hover:bg-slate-800 rounded-xl transition font-medium">
+                    <i class="fa-solid fa-gear w-5"></i> Configuración
+                </a>
+            </nav>
+        </aside>
+
+        <main class="flex-1 overflow-y-auto p-6 md:p-10">
+            <header class="flex justify-between items-center mb-10">
+                <div>
+                    <h1 class="text-3xl font-extrabold text-slate-900 tracking-tight">Panel de Control</h1>
+                    <p id="current-date" class="text-slate-500 font-medium capitalize"></p>
+                </div>
+                <button onclick="location.href='students.html'" class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-2xl font-bold shadow-lg shadow-indigo-200 transition-all flex items-center gap-2">
+                    <i class="fa-solid fa-plus"></i> Gestionar Cobros
+                </button>
+            </header>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+                <div class="card-stat bg-white p-6 rounded-[32px] shadow-sm border border-slate-100">
+                    <p class="text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Ya Cobraste</p>
+                    <h2 id="total-paid" class="text-4xl font-black text-emerald-500">$0</h2>
+                </div>
+                <div class="card-stat bg-white p-6 rounded-[32px] shadow-sm border border-slate-100">
+                    <p class="text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Por Cobrar</p>
+                    <h2 id="total-pending" class="text-4xl font-black text-amber-500">$0</h2>
+                </div>
+                <div class="card-stat bg-indigo-600 p-6 rounded-[32px] shadow-xl shadow-indigo-100">
+                    <p class="text-xs font-black text-indigo-100 uppercase tracking-widest mb-2 text-opacity-80">Alumnos Totales</p>
+                    <h2 id="total-students" class="text-4xl font-black text-white">0</h2>
+                </div>
+            </div>
+
+            <div class="bg-white p-8 rounded-[40px] shadow-sm border border-slate-100 max-w-4xl">
+                <div class="flex items-center gap-3 mb-6">
+                    <div class="w-12 h-12 bg-red-100 text-red-600 rounded-2xl flex items-center justify-center">
+                        <i class="fa-solid fa-arrow-trend-up text-xl"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-bold text-slate-900">Actualización de Precios</h3>
+                        <p class="text-sm text-slate-500">Aumentá masivamente por servicio o a todos.</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="md:col-span-1">
+                        <label class="block text-xs font-bold text-slate-400 uppercase mb-2 ml-1">Servicio</label>
+                        <select id="inflation-service" class="w-full p-4 bg-slate-50 rounded-2xl border-none focus:ring-2 focus:ring-red-500 outline-none font-bold text-slate-700">
+                            <option value="ALL">Todos los servicios</option>
+                            </select>
+                    </div>
+                    <div class="md:col-span-1">
+                        <label class="block text-xs font-bold text-slate-400 uppercase mb-2 ml-1">Porcentaje %</label>
+                        <input type="number" id="inflation-percentage" placeholder="Ej: 15" class="w-full p-4 bg-slate-50 rounded-2xl border-none focus:ring-2 focus:ring-red-500 outline-none font-bold">
+                    </div>
+                    <div class="md:col-span-1 flex items-end">
+                        <button onclick="applyInflation()" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-4 rounded-2xl shadow-lg shadow-red-100 transition-all active:scale-95">
+                            Aplicar Aumento
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script type="module">
+        // LÓGICA DE FECHA
+        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        document.getElementById('current-date').innerText = new Date().toLocaleDateString('es-ES', options);
+
+        // CARGAR SELECTOR DE SERVICIOS DESDE SETTINGS
+        function loadServices() {
+            const services = JSON.parse(localStorage.getItem('myServices') || '["General"]');
+            const select = document.getElementById('inflation-service');
+            services.forEach(s => {
+                const opt = document.createElement('option');
+                opt.value = s;
+                opt.textContent = s;
+                select.appendChild(opt);
+            });
+        }
+
+        // TRAER ESTADÍSTICAS DEL BACKEND
+        async function fetchStats() {
+            try {
+                const response = await fetch('http://localhost:3000/api/students');
+                const students = await response.json();
+                
+                const paid = students.filter(s => s.status === 'paid').reduce((acc, s) => acc + Number(s.amount), 0);
+                const pending = students.filter(s => s.status === 'pending').reduce((acc, s) => acc + Number(s.amount), 0);
+                
+                document.getElementById('total-paid').innerText = `$${paid.toLocaleString('es-AR')}`;
+                document.getElementById('total-pending').innerText = `$${pending.toLocaleString('es-AR')}`;
+                document.getElementById('total-students').innerText = students.length;
+            } catch (error) {
+                console.error("Error cargando estadísticas:", error);
+            }
+        }
+
+        // APLICAR AUMENTO POR INFLACIÓN
+        window.applyInflation = async function() {
+            const percentage = document.getElementById('inflation-percentage').value;
+            const service = document.getElementById('inflation-service').value;
+
+            if (!percentage) return alert("Por favor, ingresá un porcentaje.");
+
+            const confirmMsg = service === 'ALL' 
+                ? `¿Estás seguro de aumentar un ${percentage}% a TODOS los alumnos?` 
+                : `¿Aumentar un ${percentage}% solo a los alumnos de ${service}?`;
+
+            if (confirm(confirmMsg)) {
+                try {
+                    const response = await fetch('http://localhost:3000/api/students/update-prices', {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ 
+                            percentage: parseFloat(percentage),
+                            service: service 
+                        })
+                    });
+                    
+                    if (response.ok) {
+                        alert("✅ Precios actualizados con éxito.");
+                        location.reload();
+                    }
+                } catch (error) {
+                    alert("Error al conectar con el servidor.");
+                }
+            }
+        };
+
+        // INICIAR
+        loadServices();
+        fetchStats();
+    </script>
+</body>
+</html>

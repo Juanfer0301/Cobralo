@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configuración | Cobralo</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .glass { background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(10px); }
+    </style>
+</head>
+<body class="bg-[#F8FAFC] min-h-screen">
+    <div class="flex h-screen overflow-hidden">
+        
+        <aside class="w-64 bg-slate-900 text-white p-6 hidden md:flex flex-col">
+            <div class="mb-10 text-xl font-black italic tracking-tighter uppercase text-indigo-400">COBRALO</div>
+            <nav class="space-y-2 flex-1">
+                <a href="dashboard.html" class="flex items-center gap-3 p-3 text-gray-400 hover:bg-slate-800 rounded-xl transition font-medium">
+                    <i class="fa-solid fa-chart-pie w-5"></i> Dashboard
+                </a>
+                <a href="students.html" class="flex items-center gap-3 p-3 text-gray-400 hover:bg-slate-800 rounded-xl transition font-medium">
+                    <i class="fa-solid fa-users w-5"></i> Alumnos
+                </a>
+                <a href="settings.html" class="flex items-center gap-3 p-3 bg-indigo-600 text-white rounded-xl shadow-lg font-bold">
+                    <i class="fa-solid fa-gear w-5"></i> Configuración
+                </a>
+            </nav>
+        </aside>
+
+        <main class="flex-1 overflow-y-auto p-6 md:p-12">
+            <div class="max-w-3xl mx-auto">
+                <header class="mb-10">
+                    <h1 class="text-3xl font-extrabold text-slate-900">Configuración</h1>
+                    <p class="text-slate-500">Personaliza tus servicios y métodos de cobro para Argentina.</p>
+                </header>
+                
+                <div class="grid grid-cols-1 gap-8">
+                    
+                    <form id="form-settings" class="bg-white p-8 rounded-[32px] shadow-sm border border-slate-100 space-y-6">
+                        <h2 class="text-sm font-black uppercase text-indigo-500 tracking-widest border-b pb-2">Datos de Cobro</h2>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="md:col-span-2">
+                                <label class="block text-sm font-bold text-slate-700 mb-2">Nombre de tu Negocio / Marca</label>
+                                <input type="text" id="bizName" class="w-full p-4 bg-slate-50 rounded-2xl border-none focus:ring-2 focus:ring-indigo-500 outline-none transition shadow-inner" placeholder="Ej: Profe Martin Idiomas">
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-bold text-slate-700 mb-2">Alias Mercado Pago</label>
+                                <input type="text" id="bizAliasMP" class="w-full p-4 bg-slate-50 rounded-2xl border-none focus:ring-2 focus:ring-blue-500 outline-none shadow-inner" placeholder="juan.perez.mp">
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-bold text-slate-700 mb-2">Alias Naranja X</label>
+                                <input type="text" id="bizAliasNaranja" class="w-full p-4 bg-slate-50 rounded-2xl border-none focus:ring-2 focus:ring-orange-500 outline-none shadow-inner" placeholder="juan.naranja">
+                            </div>
+                        </div>
+
+                        <button type="submit" class="w-full bg-slate-900 text-white font-bold py-4 rounded-2xl hover:bg-indigo-600 transition shadow-xl">
+                            Guardar Perfil de Cobro
+                        </button>
+                    </form>
+
+                    <div class="bg-white p-8 rounded-[32px] shadow-sm border border-slate-100">
+                        <h2 class="text-sm font-black uppercase text-indigo-500 tracking-widest border-b pb-2 mb-6">Mis Servicios / Materias</h2>
+                        
+                        <div class="flex gap-3 mb-6">
+                            <input type="text" id="new-service-name" class="flex-1 p-4 bg-slate-50 rounded-2xl border-none focus:ring-2 focus:ring-indigo-500 outline-none shadow-inner" placeholder="Ej: Inglés, Alemán, Yoga...">
+                            <button onclick="addService()" class="bg-indigo-600 text-white px-6 rounded-2xl font-bold hover:bg-indigo-700 transition">
+                                <i class="fa-solid fa-plus"></i>
+                            </button>
+                        </div>
+
+                        <div id="services-list" class="flex flex-wrap gap-3">
+                            </div>
+                        <p class="text-xs text-slate-400 mt-4 italic">* Estos servicios aparecerán en el Dashboard para aumentos selectivos.</p>
+                    </div>
+
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // 1. GESTIÓN DE DATOS GENERALES
+        const fields = ['bizName', 'bizAliasMP', 'bizAliasNaranja'];
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Cargar datos de marca
+            fields.forEach(field => {
+                const saved = localStorage.getItem(field);
+                if (saved) document.getElementById(field).value = saved;
+            });
+            // Cargar lista de servicios
+            renderServices();
+        });
+
+        document.getElementById('form-settings').addEventListener('submit', (e) => {
+            e.preventDefault();
+            fields.forEach(field => {
+                const value = document.getElementById(field).value;
+                localStorage.setItem(field, value);
+            });
+            alert("✅ Datos de cobro guardados con éxito.");
+        });
+
+        // 2. GESTIÓN DE SERVICIOS DINÁMICOS
+        function renderServices() {
+            const container = document.getElementById('services-list');
+            // Por defecto siempre hay uno "General" si no hay nada
+            const services = JSON.parse(localStorage.getItem('myServices') || '["General"]');
+            
+            container.innerHTML = services.map(s => `
+                <div class="bg-indigo-50 text-indigo-700 px-4 py-2 rounded-xl border border-indigo-100 flex items-center gap-3 font-bold text-sm">
+                    ${s}
+                    <button onclick="removeService('${s}')" class="text-indigo-300 hover:text-red-500 transition">
+                        <i class="fa-solid fa-circle-xmark"></i>
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        window.addService = () => {
+            const input = document.getElementById('new-service-name');
+            const name = input.value.trim();
+            if (!name) return;
+
+            let services = JSON.parse(localStorage.getItem('myServices') || '["General"]');
+            if (!services.includes(name)) {
+                services.push(name);
+                localStorage.setItem('myServices', JSON.stringify(services));
+                input.value = '';
+                renderServices();
+            } else {
+                alert("Este servicio ya existe.");
+            }
+        };
+
+        window.removeService = (name) => {
+            if (name === "General") return alert("El servicio General no se puede eliminar.");
+            
+            let services = JSON.parse(localStorage.getItem('myServices') || '["General"]');
+            services = services.filter(s => s !== name);
+            localStorage.setItem('myServices', JSON.stringify(services));
+            renderServices();
+        };
+    </script>
+</body>
+</html>
